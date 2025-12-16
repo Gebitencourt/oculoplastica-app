@@ -1,0 +1,19 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  margin: 16px;
+}
+
+select, button {
+  font-size: 16px;
+  margin-top: 10px;
+  padding: 8px;
+}
+
+.card {
+  margin-top: 20px;
+}
+
+.alt {
+  display: block;
+  margin: 8px 0;
+}
