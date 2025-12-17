@@ -1,30 +1,68 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Oculoplástica – Treino</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <h1>Treino de Oculoplástica</h1>
+        <p class="sub">Escolha um capítulo e rode um simulado.</p>
+      </div>
 
-<h1>Treino de Oculoplástica</h1>
+      <button id="btnTema" class="btn ghost" type="button" onclick="toggleTema()">Tema</button>
+    </header>
 
-<select id="capitulo">
-  <option value="1">Capítulo 1 – Anatomia / Embriologia</option>
-  <option value="2">Capítulo 2 – Doenças Inflamatórias</option>
-  <option value="3">Capítulo 3 – Malposições Palpebrais</option>
-  <option value="4">Capítulo 4 – Tumores Palpebrais</option>
-  <option value="5">Capítulo 5 – Trauma Palpebral</option>
-  <option value="6">Capítulo 6 – Sistema Lacrimal</option>
-  <option value="7">Capítulo 7 – Vias Lacrimais</option>
-  <option value="8">Capítulo 8 – Olho Seco</option>
-</select>
+    <section class="panel">
+      <div class="row">
+        <label for="capitulo" class="label">Capítulo</label>
+        <select id="capitulo">
+          <option value="1">Capítulo 1 – Anatomia / Embriologia</option>
+          <option value="2">Capítulo 2 – Doenças Inflamatórias</option>
+          <option value="3">Capítulo 3 – Malposições Palpebrais</option>
+          <option value="4">Capítulo 4 – Tumores Palpebrais</option>
+          <option value="5">Capítulo 5 – Trauma / Reconstrução</option>
+          <option value="6">Capítulo 6 – Produção e Filme Lacrimal</option>
+          <option value="7">Capítulo 7 – Vias Lacrimais</option>
+          <option value="8">Capítulo 8 – Olho Seco</option>
+        </select>
+      </div>
 
-<button onclick="iniciarProva()">Iniciar Prova</button>
+      <div class="row buttons">
+        <button class="btn" type="button" onclick="iniciarProva(10)">Simulado (10 questões)</button>
+        <button class="btn secondary" type="button" onclick="iniciarProva(40)">Simulado Completo (40)</button>
+      </div>
 
-<div id="prova"></div>
+      <div class="row meta">
+        <div class="chip">Tempo: <span id="tempo">00:00</span></div>
+        <div class="chip">Acertos: <span id="acertos">0</span></div>
+        <div class="chip">Questão: <span id="contador">0/0</span></div>
+      </div>
 
-<script src="script.js"></script>
+      <div class="progress">
+        <div id="barra" class="bar"></div>
+      </div>
+
+      <div class="row buttons">
+        <button class="btn ghost" type="button" onclick="mostrarHistorico()">Histórico</button>
+        <button class="btn ghost" type="button" onclick="resetarHistorico()">Zerar Histórico</button>
+      </div>
+    </section>
+
+    <main id="prova" class="card"></main>
+
+    <section id="historico" class="card hidden"></section>
+
+    <footer class="footer">
+      <small>Funciona offline após abrir ao menos uma vez no Safari (Adicionar à Tela de Início).</small>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
