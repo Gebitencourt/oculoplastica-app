@@ -29,10 +29,11 @@
           <option value="6">Capítulo 6 – Produção e Filme Lacrimal</option>
           <option value="7">Capítulo 7 – Vias Lacrimais</option>
           <option value="8">Capítulo 8 – Olho Seco</option>
+          <option value="9">SIMULADO PROVA FINAL (30 questões)</option>
         </select>
       </div>
 
-      <div class="row buttons">
+      <div class="row buttons" id="linhaModos">
         <button id="btn10" class="btn secondary" type="button" onclick="selecionarModo(10)">Simulado (10)</button>
         <button id="btn40" class="btn secondary" type="button" onclick="selecionarModo(40)">Simulado Completo (40)</button>
       </div>
@@ -48,18 +49,6 @@
       <div class="row buttons">
         <button class="btn ghost" type="button" onclick="mostrarHistorico()">Histórico</button>
         <button class="btn ghost" type="button" onclick="resetarHistorico()">Zerar Histórico</button>
-      </div>
-    </section>
-
-    <!-- HUD (fica oculto no modo prova, mas mantém para uso futuro) -->
-    <section class="panel" id="hud">
-      <div class="row meta">
-        <div class="chip">Tempo: <span id="tempo">00:00</span></div>
-        <div class="chip">Acertos: <span id="acertos">0</span></div>
-        <div class="chip">Questão: <span id="contador">0/0</span></div>
-      </div>
-      <div class="progress">
-        <div id="barra" class="bar"></div>
       </div>
     </section>
 
