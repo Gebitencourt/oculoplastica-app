@@ -1,4 +1,4 @@
-// ========= MOTOR DO APP (v2) =========
+// ========= MOTOR DO APP (v3 - Confirmar antes + Modo Prova só questões) =========
 const bancoQuestoes = { 1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[] };
 
 let estado = {
@@ -10,6 +10,9 @@ let estado = {
   inicio: null,
   timerId: null
 };
+
+// Configuração da tela inicial
+let config = { tamanho: null };
 
 function $(id){ return document.getElementById(id); }
 
@@ -28,21 +31,62 @@ function formatTime(ms){
   return `${mm}:${ss}`;
 }
 
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+// Tema
 function setTema(theme){
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("tema", theme);
 }
-
 function toggleTema(){
   const atual = document.documentElement.getAttribute("data-theme") || "dark";
   setTema(atual === "dark" ? "light" : "dark");
 }
-
 function initTema(){
   const salvo = localStorage.getItem("tema") || "dark";
   setTema(salvo);
 }
 
+// Modo prova: só questões
+function setExamMode(on){
+  document.body.classList.toggle("exam-mode", !!on);
+}
+
+// Tela inicial: seleção de modo
+function selecionarModo(qtd){
+  config.tamanho = qtd;
+
+  $("btn10")?.classList.remove("mode-selected");
+  $("btn40")?.classList.remove("mode-selected");
+  (qtd === 10 ? $("btn10") : $("btn40"))?.classList.add("mode-selected");
+
+  atualizarResumoConfig();
+}
+
+function atualizarResumoConfig(){
+  const cap = parseInt($("capitulo")?.value || "1", 10);
+  const modo = config.tamanho ? `${config.tamanho} questões` : "selecione 10 ou 40";
+  const el = $("resumoConfig");
+  if(el) el.innerHTML = `<b>Selecionado:</b> Capítulo ${cap} • <b>Modo:</b> ${modo}`;
+}
+
+function confirmarEIniciar(){
+  if(!config.tamanho){
+    const el = $("resumoConfig");
+    if(el) el.innerHTML = `<b>Selecione o modo</b> (10 ou 40) antes de iniciar.`;
+    return;
+  }
+  iniciarProva(config.tamanho);
+}
+
+// Prova
 function iniciarProva(qtd){
   const cap = parseInt($("capitulo").value, 10);
   estado.capitulo = cap;
@@ -61,29 +105,14 @@ function iniciarProva(qtd){
   estado.inicio = Date.now();
 
   if(estado.timerId) clearInterval(estado.timerId);
-  estado.timerId = setInterval(atualizarTempo, 250);
+  estado.timerId = setInterval(()=>{}, 250); // reservado (HUD oculto no modo prova)
 
-  $("historico").classList.add("hidden");
+  setExamMode(true);
   renderQuestao();
-  atualizarHUD();
-}
-
-function atualizarTempo(){
-  if(!estado.inicio) return;
-  $("tempo").textContent = formatTime(Date.now() - estado.inicio);
-}
-
-function atualizarHUD(){
-  $("acertos").textContent = String(estado.acertos);
-  $("contador").textContent = `${estado.idx+1}/${estado.pool.length}`;
-
-  const pct = estado.pool.length ? Math.round((estado.idx/estado.pool.length)*100) : 0;
-  $("barra").style.width = `${pct}%`;
 }
 
 function renderQuestao(){
   const q = estado.pool[estado.idx];
-  atualizarHUD();
 
   const html = `
     <h2 class="q-title">Q${estado.idx+1}. ${escapeHtml(q.pergunta)}</h2>
@@ -125,7 +154,6 @@ function confirmar(){
 
   const titulo = ok ? "Correto" : "Incorreto";
   const cls = ok ? "ok" : "bad";
-
   const corretaTxt = q.alternativas[correta];
   const exp = q.explicacao || "Sem explicação cadastrada.";
 
@@ -141,7 +169,7 @@ function confirmar(){
     </div>
   `;
 
-  // trava alterações após confirmar
+  // trava alternativas após confirmar
   [...document.querySelectorAll('input[name="alt"]')].forEach(el => el.disabled = true);
 }
 
@@ -182,7 +210,8 @@ function finalizar(){
     modo: total === 40 ? "Completo (40)" : "Simulado (10)"
   });
 
-  $("barra").style.width = "100%";
+  setExamMode(false);
+  atualizarResumoConfig();
 
   $("prova").innerHTML = `
     <h2 class="q-title">Resultado</h2>
@@ -196,16 +225,14 @@ function finalizar(){
   `;
 
   estado.inicio = null;
-  $("tempo").textContent = "00:00";
-  $("acertos").textContent = "0";
-  $("contador").textContent = "0/0";
 }
 
+// Histórico
 function salvarHistorico(item){
   const key = "hist_oculo";
   const atual = JSON.parse(localStorage.getItem(key) || "[]");
   atual.unshift(item);
-  localStorage.setItem(key, JSON.stringify(atual.slice(0, 50))); // mantém últimos 50
+  localStorage.setItem(key, JSON.stringify(atual.slice(0, 50)));
 }
 
 function mostrarHistorico(){
@@ -236,24 +263,13 @@ function resetarHistorico(){
   mostrarHistorico();
 }
 
-function escapeHtml(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
 window.addEventListener("load", () => {
   initTema();
-  $("tempo").textContent = "00:00";
-  $("acertos").textContent = "0";
-  $("contador").textContent = "0/0";
-  $("barra").style.width = "0%";
+  atualizarResumoConfig();
 });
 
 // ======= A PARTIR DAQUI, MANTENHA SUAS 320 QUESTÕES COMO ESTÃO =======
+
 
 bancoQuestoes[1] = [
   {
