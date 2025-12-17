@@ -9,7 +9,6 @@
   --btn2:#2b334a;
   --danger:#d64545;
   --ok:#2bb673;
-  --warn:#f0b429;
 }
 
 html[data-theme="light"]{
@@ -23,7 +22,6 @@ html[data-theme="light"]{
   --btn2:#eef2ff;
   --danger:#d64545;
   --ok:#168a53;
-  --warn:#b7791f;
 }
 
 *{box-sizing:border-box}
@@ -35,6 +33,7 @@ body{
 }
 
 .app{max-width:820px;margin:0 auto;padding:16px}
+
 .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 h1{margin:0;font-size:22px}
 .sub{margin:6px 0 0;color:var(--muted);font-size:13px}
@@ -49,6 +48,7 @@ h1{margin:0;font-size:22px}
 
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
 .label{font-size:13px;color:var(--muted)}
+
 select{
   flex:1;
   min-width:240px;
@@ -61,6 +61,7 @@ select{
 }
 
 .buttons{gap:10px}
+
 .btn{
   border:1px solid transparent;
   background:var(--btn);
@@ -68,10 +69,15 @@ select{
   padding:10px 12px;
   border-radius:12px;
   font-size:15px;
-  font-weight:600;
+  font-weight:700;
 }
 .btn.secondary{background:var(--btn2);color:var(--text);border:1px solid var(--border)}
 .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+.mode-selected{
+  border:1px solid var(--btn) !important;
+  background: var(--btn2) !important;
+}
 
 .meta{gap:8px}
 .chip{
@@ -82,7 +88,7 @@ select{
   font-size:13px;
   color:var(--muted);
 }
-.chip span{color:var(--text);font-weight:700}
+.chip span{color:var(--text);font-weight:800}
 
 .progress{
   height:10px;
@@ -102,15 +108,28 @@ select{
 }
 
 .q-title{margin:0 0 10px;font-size:16px}
-.alt{display:block;margin:10px 0}
+.alt{display:block;margin:10px 0;line-height:1.35}
 .alt input{margin-right:8px}
 .feedback{margin-top:12px;padding:10px;border-radius:12px;border:1px solid var(--border)}
 .feedback.ok{border-color:rgba(43,182,115,.4);background:rgba(43,182,115,.08)}
 .feedback.bad{border-color:rgba(214,69,69,.4);background:rgba(214,69,69,.08)}
-.feedback .t{font-weight:800;margin-bottom:6px}
+.feedback .t{font-weight:900;margin-bottom:6px}
 .small{color:var(--muted);font-size:13px;line-height:1.45}
-
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .hidden{display:none}
 .footer{margin:14px 0 0;color:var(--muted)}
 .hr{height:1px;background:var(--border);margin:12px 0}
+
+/* ===== MODO PROVA: MOSTRAR SOMENTE QUESTÕES ===== */
+body.exam-mode .topbar,
+body.exam-mode #painelInicial,
+body.exam-mode #hud,
+body.exam-mode #historico,
+body.exam-mode .footer{
+  display:none !important;
+}
+
+body.exam-mode .app{
+  padding-top: 10px;
+}
+
