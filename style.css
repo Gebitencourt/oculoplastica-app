@@ -69,7 +69,7 @@ select{
   padding:10px 12px;
   border-radius:12px;
   font-size:15px;
-  font-weight:700;
+  font-weight:800;
 }
 .btn.secondary{background:var(--btn2);color:var(--text);border:1px solid var(--border)}
 .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
@@ -79,26 +79,6 @@ select{
   background: var(--btn2) !important;
 }
 
-.meta{gap:8px}
-.chip{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:999px;
-  padding:7px 10px;
-  font-size:13px;
-  color:var(--muted);
-}
-.chip span{color:var(--text);font-weight:800}
-
-.progress{
-  height:10px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:999px;
-  overflow:hidden;
-}
-.bar{height:100%;width:0%;background:var(--btn);transition:width .25s ease}
-
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -107,23 +87,35 @@ select{
   margin-top:14px;
 }
 
-.q-title{margin:0 0 10px;font-size:16px}
+.q-title{margin:0 0 10px;font-size:16px;line-height:1.25}
 .alt{display:block;margin:10px 0;line-height:1.35}
 .alt input{margin-right:8px}
+.small{color:var(--muted);font-size:13px;line-height:1.45}
+
 .feedback{margin-top:12px;padding:10px;border-radius:12px;border:1px solid var(--border)}
 .feedback.ok{border-color:rgba(43,182,115,.4);background:rgba(43,182,115,.08)}
 .feedback.bad{border-color:rgba(214,69,69,.4);background:rgba(214,69,69,.08)}
 .feedback .t{font-weight:900;margin-bottom:6px}
-.small{color:var(--muted);font-size:13px;line-height:1.45}
+
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .hidden{display:none}
 .footer{margin:14px 0 0;color:var(--muted)}
 .hr{height:1px;background:var(--border);margin:12px 0}
 
+.tag{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--muted);
+  font-size:12px;
+  margin-right:8px;
+}
+
 /* ===== MODO PROVA: MOSTRAR SOMENTE QUESTÕES ===== */
 body.exam-mode .topbar,
 body.exam-mode #painelInicial,
-body.exam-mode #hud,
 body.exam-mode #historico,
 body.exam-mode .footer{
   display:none !important;
@@ -132,4 +124,3 @@ body.exam-mode .footer{
 body.exam-mode .app{
   padding-top: 10px;
 }
-
