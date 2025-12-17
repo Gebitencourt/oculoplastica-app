@@ -12,16 +12,15 @@
     <header class="topbar">
       <div>
         <h1>Treino de Oculoplástica</h1>
-        <p class="sub">Escolha um capítulo e rode um simulado.</p>
+        <p class="sub">Escolha capítulo e modo. Confirme para iniciar.</p>
       </div>
-
       <button id="btnTema" class="btn ghost" type="button" onclick="toggleTema()">Tema</button>
     </header>
 
-    <section class="panel">
+    <section class="panel" id="painelInicial">
       <div class="row">
         <label for="capitulo" class="label">Capítulo</label>
-        <select id="capitulo">
+        <select id="capitulo" onchange="atualizarResumoConfig()">
           <option value="1">Capítulo 1 – Anatomia / Embriologia</option>
           <option value="2">Capítulo 2 – Doenças Inflamatórias</option>
           <option value="3">Capítulo 3 – Malposições Palpebrais</option>
@@ -34,19 +33,17 @@
       </div>
 
       <div class="row buttons">
-        <button class="btn" type="button" onclick="iniciarProva(10)">Simulado (10 questões)</button>
-        <button class="btn secondary" type="button" onclick="iniciarProva(40)">Simulado Completo (40)</button>
+        <button id="btn10" class="btn secondary" type="button" onclick="selecionarModo(10)">Simulado (10)</button>
+        <button id="btn40" class="btn secondary" type="button" onclick="selecionarModo(40)">Simulado Completo (40)</button>
       </div>
 
-      <div class="row meta">
-        <div class="chip">Tempo: <span id="tempo">00:00</span></div>
-        <div class="chip">Acertos: <span id="acertos">0</span></div>
-        <div class="chip">Questão: <span id="contador">0/0</span></div>
+      <div class="row">
+        <button id="btnConfirmar" class="btn" type="button" onclick="confirmarEIniciar()">
+          Confirmar e iniciar
+        </button>
       </div>
 
-      <div class="progress">
-        <div id="barra" class="bar"></div>
-      </div>
+      <p id="resumoConfig" class="small" style="margin:6px 0 0;"></p>
 
       <div class="row buttons">
         <button class="btn ghost" type="button" onclick="mostrarHistorico()">Histórico</button>
@@ -54,12 +51,23 @@
       </div>
     </section>
 
-    <main id="prova" class="card"></main>
+    <!-- HUD (fica oculto no modo prova, mas mantém para uso futuro) -->
+    <section class="panel" id="hud">
+      <div class="row meta">
+        <div class="chip">Tempo: <span id="tempo">00:00</span></div>
+        <div class="chip">Acertos: <span id="acertos">0</span></div>
+        <div class="chip">Questão: <span id="contador">0/0</span></div>
+      </div>
+      <div class="progress">
+        <div id="barra" class="bar"></div>
+      </div>
+    </section>
 
+    <main id="prova" class="card"></main>
     <section id="historico" class="card hidden"></section>
 
     <footer class="footer">
-      <small>Funciona offline após abrir ao menos uma vez no Safari (Adicionar à Tela de Início).</small>
+      <small>Para instalar: Safari → Compartilhar → Adicionar à Tela de Início.</small>
     </footer>
   </div>
 
