@@ -1,114 +1,260 @@
-// ===== BANCO DE QUESTÕES =====
-// Cada questão: pergunta, alternativas[5], correta (0-4), explicacao
-const bancoQuestoes = {
-  1: [
-    // (Abaixo você cola as questões do Capítulo 1)
-  ],
-  2: [],
-  3: [],
-  4: [],
-  5: [],
-  6: [],
-  7: [],
-  8: []
+// ========= MOTOR DO APP (v2) =========
+const bancoQuestoes = { 1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[] };
+
+let estado = {
+  capitulo: 1,
+  tamanho: 10,
+  pool: [],
+  idx: 0,
+  acertos: 0,
+  inicio: null,
+  timerId: null
 };
 
-let prova = [];
-let idxAtual = 0;
-let acertos = 0;
+function $(id){ return document.getElementById(id); }
 
-function iniciarProva() {
-  const cap = Number(document.getElementById("capitulo").value);
-  const base = bancoQuestoes[cap] || [];
-
-  if (base.length < 10) {
-    document.getElementById("prova").innerHTML =
-      `<p><strong>Este capítulo ainda tem ${base.length} questões.</strong> O app precisa de pelo menos 10 para montar a prova.</p>`;
-    return;
-  }
-
-  prova = embaralhar([...base]).slice(0, 10);
-  idxAtual = 0;
-  acertos = 0;
-  renderQuestao();
-}
-
-function renderQuestao() {
-  const q = prova[idxAtual];
-
-  let html = `
-    <div class="card">
-      <p><strong>Questão ${idxAtual + 1}/10</strong></p>
-      <p>${q.pergunta}</p>
-      <form id="formQ">
-  `;
-
-  q.alternativas.forEach((alt, i) => {
-    html += `
-      <label class="alt">
-        <input type="radio" name="resp" value="${i}">
-        ${String.fromCharCode(65 + i)}) ${alt}
-      </label><br>
-    `;
-  });
-
-  html += `
-      <button type="submit">Responder</button>
-      </form>
-      <div id="feedback"></div>
-    </div>
-  `;
-
-  document.getElementById("prova").innerHTML = html;
-
-  document.getElementById("formQ").addEventListener("submit", (e) => {
-    e.preventDefault();
-    corrigir();
-  });
-}
-
-function corrigir() {
-  const q = prova[idxAtual];
-  const marcado = document.querySelector('input[name="resp"]:checked');
-
-  if (!marcado) {
-    document.getElementById("feedback").innerHTML = `<p><em>Selecione uma alternativa.</em></p>`;
-    return;
-  }
-
-  const resp = Number(marcado.value);
-  const letraCorreta = String.fromCharCode(65 + q.correta);
-
-  if (resp === q.correta) {
-    acertos++;
-    document.getElementById("feedback").innerHTML =
-      `<p><strong>Correto.</strong></p><button onclick="proxima()">Próxima</button>`;
-  } else {
-    document.getElementById("feedback").innerHTML =
-      `<p><strong>Incorreto.</strong> Correta: <strong>${letraCorreta}</strong></p>
-       <p><em>${q.explicacao}</em></p>
-       <button onclick="proxima()">Próxima</button>`;
-  }
-}
-
-function proxima() {
-  idxAtual++;
-  if (idxAtual >= 10) {
-    document.getElementById("prova").innerHTML =
-      `<h2>Resultado</h2><p>Acertos: <strong>${acertos}/10</strong></p>
-       <button onclick="iniciarProva()">Refazer (novo sorteio)</button>`;
-    return;
-  }
-  renderQuestao();
-}
-
-function embaralhar(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
+
+function formatTime(ms){
+  const s = Math.floor(ms/1000);
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
+
+function setTema(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("tema", theme);
+}
+
+function toggleTema(){
+  const atual = document.documentElement.getAttribute("data-theme") || "dark";
+  setTema(atual === "dark" ? "light" : "dark");
+}
+
+function initTema(){
+  const salvo = localStorage.getItem("tema") || "dark";
+  setTema(salvo);
+}
+
+function iniciarProva(qtd){
+  const cap = parseInt($("capitulo").value, 10);
+  estado.capitulo = cap;
+  estado.tamanho = qtd;
+
+  const questoes = (bancoQuestoes[cap] || []).slice();
+  if(questoes.length === 0){
+    $("prova").innerHTML = `<p class="small">Sem questões carregadas para este capítulo.</p>`;
+    return;
+  }
+
+  const n = Math.min(qtd, questoes.length);
+  estado.pool = shuffle(questoes).slice(0, n);
+  estado.idx = 0;
+  estado.acertos = 0;
+  estado.inicio = Date.now();
+
+  if(estado.timerId) clearInterval(estado.timerId);
+  estado.timerId = setInterval(atualizarTempo, 250);
+
+  $("historico").classList.add("hidden");
+  renderQuestao();
+  atualizarHUD();
+}
+
+function atualizarTempo(){
+  if(!estado.inicio) return;
+  $("tempo").textContent = formatTime(Date.now() - estado.inicio);
+}
+
+function atualizarHUD(){
+  $("acertos").textContent = String(estado.acertos);
+  $("contador").textContent = `${estado.idx+1}/${estado.pool.length}`;
+
+  const pct = estado.pool.length ? Math.round((estado.idx/estado.pool.length)*100) : 0;
+  $("barra").style.width = `${pct}%`;
+}
+
+function renderQuestao(){
+  const q = estado.pool[estado.idx];
+  atualizarHUD();
+
+  const html = `
+    <h2 class="q-title">Q${estado.idx+1}. ${escapeHtml(q.pergunta)}</h2>
+    <form id="formQ">
+      ${q.alternativas.map((a, i)=>`
+        <label class="alt">
+          <input type="radio" name="alt" value="${i}" />
+          ${escapeHtml(a)}
+        </label>
+      `).join("")}
+
+      <div class="actions">
+        <button class="btn" type="button" onclick="confirmar()">Confirmar</button>
+        <button class="btn ghost" type="button" onclick="pular()">Pular</button>
+        <button class="btn secondary" type="button" onclick="finalizar()">Finalizar</button>
+      </div>
+    </form>
+    <div id="fb"></div>
+  `;
+
+  $("prova").innerHTML = html;
+}
+
+function confirmar(){
+  const q = estado.pool[estado.idx];
+  const form = $("formQ");
+  const escolhido = form?.alt?.value;
+
+  if(escolhido === undefined){
+    $("fb").innerHTML = `<div class="feedback bad"><div class="t">Selecione uma alternativa.</div></div>`;
+    return;
+  }
+
+  const sel = parseInt(escolhido, 10);
+  const correta = q.correta;
+
+  const ok = sel === correta;
+  if(ok) estado.acertos++;
+
+  const titulo = ok ? "Correto" : "Incorreto";
+  const cls = ok ? "ok" : "bad";
+
+  const corretaTxt = q.alternativas[correta];
+  const exp = q.explicacao || "Sem explicação cadastrada.";
+
+  $("fb").innerHTML = `
+    <div class="feedback ${cls}">
+      <div class="t">${titulo}</div>
+      ${ok ? "" : `<div class="small"><b>Correta:</b> ${escapeHtml(corretaTxt)}</div>`}
+      <div class="hr"></div>
+      <div class="small">${escapeHtml(exp)}</div>
+      <div class="actions">
+        <button class="btn" type="button" onclick="proxima()">Próxima</button>
+      </div>
+    </div>
+  `;
+
+  // trava alterações após confirmar
+  [...document.querySelectorAll('input[name="alt"]')].forEach(el => el.disabled = true);
+}
+
+function proxima(){
+  if(estado.idx < estado.pool.length - 1){
+    estado.idx++;
+    renderQuestao();
+  } else {
+    finalizar();
+  }
+}
+
+function pular(){
+  if(estado.idx < estado.pool.length - 1){
+    estado.idx++;
+    renderQuestao();
+  } else {
+    finalizar();
+  }
+}
+
+function finalizar(){
+  if(estado.timerId) clearInterval(estado.timerId);
+  estado.timerId = null;
+
+  const tempoMs = estado.inicio ? (Date.now() - estado.inicio) : 0;
+  const total = estado.pool.length;
+  const acertos = estado.acertos;
+  const pct = total ? Math.round((acertos/total)*100) : 0;
+
+  salvarHistorico({
+    data: new Date().toISOString(),
+    capitulo: estado.capitulo,
+    total,
+    acertos,
+    pct,
+    tempo: formatTime(tempoMs),
+    modo: total === 40 ? "Completo (40)" : "Simulado (10)"
+  });
+
+  $("barra").style.width = "100%";
+
+  $("prova").innerHTML = `
+    <h2 class="q-title">Resultado</h2>
+    <p class="small"><b>Capítulo:</b> ${estado.capitulo} • <b>Modo:</b> ${total === 40 ? "Completo (40)" : "Simulado (10)"}</p>
+    <p class="small"><b>Acertos:</b> ${acertos}/${total} (${pct}%)</p>
+    <p class="small"><b>Tempo:</b> ${formatTime(tempoMs)}</p>
+    <div class="actions">
+      <button class="btn" type="button" onclick="iniciarProva(${total})">Refazer</button>
+      <button class="btn secondary" type="button" onclick="mostrarHistorico()">Ver histórico</button>
+    </div>
+  `;
+
+  estado.inicio = null;
+  $("tempo").textContent = "00:00";
+  $("acertos").textContent = "0";
+  $("contador").textContent = "0/0";
+}
+
+function salvarHistorico(item){
+  const key = "hist_oculo";
+  const atual = JSON.parse(localStorage.getItem(key) || "[]");
+  atual.unshift(item);
+  localStorage.setItem(key, JSON.stringify(atual.slice(0, 50))); // mantém últimos 50
+}
+
+function mostrarHistorico(){
+  const key = "hist_oculo";
+  const itens = JSON.parse(localStorage.getItem(key) || "[]");
+  const box = $("historico");
+  box.classList.remove("hidden");
+
+  if(itens.length === 0){
+    box.innerHTML = `<h2 class="q-title">Histórico</h2><p class="small">Sem registros ainda.</p>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <h2 class="q-title">Histórico</h2>
+    ${itens.map(i => `
+      <div class="hr"></div>
+      <div class="small">
+        <b>${new Date(i.data).toLocaleString()}</b><br/>
+        Cap ${i.capitulo} • ${i.modo} • <b>${i.acertos}/${i.total}</b> (${i.pct}%) • Tempo: ${i.tempo}
+      </div>
+    `).join("")}
+  `;
+}
+
+function resetarHistorico(){
+  localStorage.removeItem("hist_oculo");
+  mostrarHistorico();
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+window.addEventListener("load", () => {
+  initTema();
+  $("tempo").textContent = "00:00";
+  $("acertos").textContent = "0";
+  $("contador").textContent = "0/0";
+  $("barra").style.width = "0%";
+});
+
+// ======= A PARTIR DAQUI, MANTENHA SUAS 320 QUESTÕES COMO ESTÃO =======
+
 bancoQuestoes[1] = [
   {
     pergunta: "Na porção central da pálpebra inferior, qual é a sequência correta das estruturas da margem palpebral, de anterior para posterior?",
