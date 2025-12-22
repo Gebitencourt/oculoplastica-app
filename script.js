@@ -1,4 +1,9 @@
-// ========= MOTOR DO APP (v4 - Prova Final 30/90 sem gabarito imediato) =========
+// ========= MOTOR DO APP (v5 - Layout estilo "show" + Prova Final 30/90 sem gabarito imediato) =========
+// OBS: Substitua TODO o conteúdo do script.js ATÉ o marcador:
+// // ======= A PARTIR DAQUI, MANTENHA SUAS QUESTÕES COMO ESTÃO =======
+//
+// Não altere nada do banco de questões abaixo do marcador.
+
 const bancoQuestoes = { 1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[] };
 
 let estado = {
@@ -8,9 +13,8 @@ let estado = {
   idx: 0,
   acertos: 0,
   inicio: null,
-  timerId: null,
-  respostas: [],       // índice marcado por questão (ou null)
-  provaFinal: false    // true quando capitulo 9
+  respostas: [],
+  provaFinal: false
 };
 
 // Configuração da tela inicial (capítulos 1–8)
@@ -26,13 +30,6 @@ function shuffle(arr){
   return arr;
 }
 
-function formatTime(ms){
-  const s = Math.floor(ms/1000);
-  const mm = String(Math.floor(s/60)).padStart(2,'0');
-  const ss = String(s%60).padStart(2,'0');
-  return `${mm}:${ss}`;
-}
-
 function escapeHtml(s){
   return String(s)
     .replaceAll("&","&amp;")
@@ -42,7 +39,14 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
-// Tema
+function formatTime(ms){
+  const s = Math.floor(ms/1000);
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
+
+// ===== Tema =====
 function setTema(theme){
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("tema", theme);
@@ -56,17 +60,19 @@ function initTema(){
   setTema(salvo);
 }
 
-// Modo prova: só questões
+// ===== Modo prova: só questões =====
 function setExamMode(on){
   document.body.classList.toggle("exam-mode", !!on);
 }
 
-// Tela inicial: seleção de modo (capítulos 1–8)
+// ===== Tela inicial =====
 function selecionarModo(qtd){
   config.tamanho = qtd;
+
   $("btn10")?.classList.remove("mode-selected");
   $("btn40")?.classList.remove("mode-selected");
   (qtd === 10 ? $("btn10") : $("btn40"))?.classList.add("mode-selected");
+
   atualizarResumoConfig();
 }
 
@@ -76,7 +82,6 @@ function atualizarResumoConfig(){
   const el = $("resumoConfig");
 
   if(cap === 9){
-    // Prova final: fixa 30 questões, sem necessidade de modo 10/40
     if(linhaModos) linhaModos.classList.add("hidden");
     if(el) el.innerHTML = `<b>Selecionado:</b> SIMULADO PROVA FINAL • <b>30 questões</b> (sorteadas de 90) • sem gabarito durante a prova.`;
     return;
@@ -89,21 +94,24 @@ function atualizarResumoConfig(){
 
 function confirmarEIniciar(){
   const cap = parseInt($("capitulo")?.value || "1", 10);
+
   if(cap === 9){
     iniciarProvaFinal();
     return;
   }
+
   if(!config.tamanho){
     const el = $("resumoConfig");
     if(el) el.innerHTML = `<b>Selecione o modo</b> (10 ou 40) antes de iniciar.`;
     return;
   }
+
   iniciarProva(config.tamanho);
 }
 
-// Prova padrão (capítulos 1–8)
+// ===== Início das provas =====
 function iniciarProva(qtd){
-  const cap = parseInt($("capitulo").value, 10);
+  const cap = parseInt($("capitulo")?.value || "1", 10);
   estado.capitulo = cap;
   estado.tamanho = qtd;
   estado.provaFinal = false;
@@ -125,7 +133,6 @@ function iniciarProva(qtd){
   renderQuestao();
 }
 
-// Prova Final (capítulo 9): 30 de 90, sem gabarito imediato
 function iniciarProvaFinal(){
   const cap = 9;
   estado.capitulo = cap;
@@ -134,7 +141,7 @@ function iniciarProvaFinal(){
 
   const questoes = (bancoQuestoes[cap] || []).slice();
   if(questoes.length < 90){
-    $("prova").innerHTML = `<p class="small">Banco da Prova Final ainda não está completo (precisa de 90 questões).</p>`;
+    $("prova").innerHTML = `<p class="small">Banco da Prova Final precisa ter 90 questões. Atualmente: ${questoes.length}.</p>`;
     return;
   }
 
@@ -148,68 +155,114 @@ function iniciarProvaFinal(){
   renderQuestao();
 }
 
+// ===== Layout estilo "show" =====
 function renderQuestao(){
   const q = estado.pool[estado.idx];
 
-  const tag = estado.provaFinal
-    ? `<span class="tag">PROVA FINAL</span><span class="tag">${estado.idx+1}/30</span>`
-    : `<span class="tag">Cap ${estado.capitulo}</span><span class="tag">${estado.idx+1}/${estado.pool.length}</span>`;
+  const metaLeft = estado.provaFinal ? "PROVA FINAL" : `Capítulo ${estado.capitulo}`;
+  const metaRight = `${estado.idx+1}/${estado.pool.length}`;
 
-  const html = `
-    <div style="margin-bottom:10px;">${tag}</div>
-    <h2 class="q-title">Q${estado.idx+1}. ${escapeHtml(q.pergunta)}</h2>
-    <form id="formQ">
-      ${q.alternativas.map((a, i)=>`
-        <label class="alt">
-          <input type="radio" name="alt" value="${i}" />
-          ${escapeHtml(a)}
-        </label>
-      `).join("")}
+  const letras = ["A","B","C","D","E"];
 
-      <div class="actions">
-        <button class="btn" type="button" onclick="confirmar()">Confirmar</button>
-        <button class="btn ghost" type="button" onclick="pular()">Pular</button>
-        <button class="btn secondary" type="button" onclick="finalizar()">Finalizar</button>
+  $("prova").innerHTML = `
+    <div class="stage">
+      <div class="question-box">
+        <div class="q-head">
+          <div class="pill">${escapeHtml(metaLeft)}</div>
+          <div class="pill">${escapeHtml(metaRight)}</div>
+        </div>
+        <h2 class="q-title">Q${estado.idx+1}. ${escapeHtml(q.pergunta)}</h2>
       </div>
-    </form>
-    <div id="fb"></div>
+
+      <div class="options" id="opts">
+        ${q.alternativas.map((a,i)=>`
+          <button class="opt" type="button" data-i="${i}" onclick="selecionarAlternativa(${i})">
+            <span class="letter">${letras[i]}</span>
+            <span class="txt">${escapeHtml(a)}</span>
+          </button>
+        `).join("")}
+      </div>
+
+      <div class="controls">
+        <div class="left">
+          <span class="pill">Selecione e confirme</span>
+        </div>
+        <div class="right">
+          <button class="btn secondary" type="button" onclick="pular()">Pular</button>
+          <button class="btn" type="button" onclick="confirmar()">Confirmar</button>
+          <button class="btn ghost" type="button" onclick="finalizar()">Finalizar</button>
+        </div>
+      </div>
+
+      <div id="fb"></div>
+    </div>
   `;
 
-  $("prova").innerHTML = html;
-
-  // Se já tinha resposta marcada (em caso de navegação futura), re-marcar
+  // re-marcar se já havia resposta
   const ja = estado.respostas[estado.idx];
   if(ja !== null){
-    const el = document.querySelector(`input[name="alt"][value="${ja}"]`);
-    if(el) el.checked = true;
+    selecionarAlternativa(ja, true);
   }
 }
 
+function selecionarAlternativa(i, silencioso=false){
+  estado.respostas[estado.idx] = i;
+
+  const botoes = [...document.querySelectorAll(".opt")];
+  botoes.forEach(b => b.classList.remove("selected"));
+
+  const alvo = document.querySelector(`.opt[data-i="${i}"]`);
+  if(alvo) alvo.classList.add("selected");
+
+  if(!silencioso){
+    $("fb").innerHTML = "";
+  }
+}
+
+function travarOpcoes(){
+  [...document.querySelectorAll(".opt")].forEach(b=>{
+    b.classList.add("locked");
+    b.setAttribute("disabled","disabled");
+  });
+}
+
+function marcarResultadoVisual(sel, correta){
+  const bSel = document.querySelector(`.opt[data-i="${sel}"]`);
+  const bCor = document.querySelector(`.opt[data-i="${correta}"]`);
+
+  if(sel === correta){
+    if(bSel) bSel.classList.add("correct");
+  } else {
+    if(bSel) bSel.classList.add("wrong");
+    if(bCor) bCor.classList.add("correct");
+  }
+}
+
+// ===== Responder / Navegar =====
 function confirmar(){
   const q = estado.pool[estado.idx];
-  const form = $("formQ");
-  const escolhido = form?.alt?.value;
+  const sel = estado.respostas[estado.idx];
 
-  if(escolhido === undefined){
+  if(sel === null || sel === undefined){
     $("fb").innerHTML = `<div class="feedback bad"><div class="t">Selecione uma alternativa.</div></div>`;
     return;
   }
 
-  const sel = parseInt(escolhido, 10);
-  estado.respostas[estado.idx] = sel;
-
-  // PROVA FINAL: não exibir gabarito nem explicação agora
+  // PROVA FINAL: não mostrar gabarito agora
   if(estado.provaFinal){
+    travarOpcoes();
     $("fb").innerHTML = `
-      <div class="feedback ok">
+      <div class="feedback neutral">
         <div class="t">Resposta registrada</div>
-        <div class="small">O gabarito e as explicações aparecem apenas no final.</div>
-        <div class="actions">
-          <button class="btn" type="button" onclick="proxima()">Próxima</button>
+        <div class="small">No modo Prova Final, o gabarito e as explicações aparecem apenas no final.</div>
+        <div class="controls" style="margin-top:10px;">
+          <div class="left"></div>
+          <div class="right">
+            <button class="btn" type="button" onclick="proxima()">Próxima</button>
+          </div>
         </div>
       </div>
     `;
-    [...document.querySelectorAll('input[name="alt"]')].forEach(el => el.disabled = true);
     return;
   }
 
@@ -218,24 +271,23 @@ function confirmar(){
   const ok = sel === correta;
   if(ok) estado.acertos++;
 
-  const titulo = ok ? "Correto" : "Incorreto";
-  const cls = ok ? "ok" : "bad";
-  const corretaTxt = q.alternativas[correta];
+  travarOpcoes();
+  marcarResultadoVisual(sel, correta);
+
   const exp = q.explicacao || "Sem explicação cadastrada.";
 
   $("fb").innerHTML = `
-    <div class="feedback ${cls}">
-      <div class="t">${titulo}</div>
-      ${ok ? "" : `<div class="small"><b>Correta:</b> ${escapeHtml(corretaTxt)}</div>`}
-      <div class="hr"></div>
+    <div class="feedback ${ok ? "ok" : "bad"}">
+      <div class="t">${ok ? "Correto" : "Incorreto"}</div>
       <div class="small">${escapeHtml(exp)}</div>
-      <div class="actions">
-        <button class="btn" type="button" onclick="proxima()">Próxima</button>
+      <div class="controls" style="margin-top:10px;">
+        <div class="left"></div>
+        <div class="right">
+          <button class="btn" type="button" onclick="proxima()">Próxima</button>
+        </div>
       </div>
     </div>
   `;
-
-  [...document.querySelectorAll('input[name="alt"]')].forEach(el => el.disabled = true);
 }
 
 function proxima(){
@@ -256,11 +308,12 @@ function pular(){
   }
 }
 
+// ===== Finalização / Resultado =====
 function finalizar(){
-  // Corrigir (especialmente na prova final)
   const total = estado.pool.length;
-  let acertos = 0;
 
+  // recalcula acertos com base nas respostas gravadas (inclui prova final)
+  let acertos = 0;
   for(let i=0;i<total;i++){
     const q = estado.pool[i];
     const sel = estado.respostas[i];
@@ -294,17 +347,29 @@ function finalizar(){
 
 function renderResultadoPadrao(acertos, total, pct, tempoMs){
   $("prova").innerHTML = `
-    <h2 class="q-title">Resultado</h2>
-    <p class="small"><b>Capítulo:</b> ${estado.capitulo} • <b>Acertos:</b> ${acertos}/${total} (${pct}%) • <b>Tempo:</b> ${formatTime(tempoMs)}</p>
-    <div class="actions">
-      <button class="btn" type="button" onclick="iniciarProva(${total})">Refazer</button>
-      <button class="btn secondary" type="button" onclick="mostrarHistorico()">Ver histórico</button>
+    <div class="stage">
+      <div class="question-box">
+        <div class="q-head">
+          <div class="pill">RESULTADO</div>
+          <div class="pill">Capítulo ${estado.capitulo}</div>
+        </div>
+        <h2 class="q-title">Você acertou ${acertos}/${total} (${pct}%). Tempo: ${formatTime(tempoMs)}</h2>
+      </div>
+
+      <div class="controls">
+        <div class="left">
+          <span class="pill">${total === 40 ? "Simulado completo" : "Simulado"}</span>
+        </div>
+        <div class="right">
+          <button class="btn" type="button" onclick="iniciarProva(${total})">Refazer</button>
+          <button class="btn secondary" type="button" onclick="mostrarHistorico()">Ver histórico</button>
+        </div>
+      </div>
     </div>
   `;
 }
 
 function renderResultadoProvaFinal(acertos, total, pct, tempoMs){
-  // Mostrar explicação detalhada somente das erradas (com revisão por questão)
   const linhas = [];
 
   for(let i=0;i<total;i++){
@@ -328,23 +393,37 @@ function renderResultadoProvaFinal(acertos, total, pct, tempoMs){
   }
 
   $("prova").innerHTML = `
-    <h2 class="q-title">PROVA FINAL – Resultado</h2>
-    <p class="small">
-      <b>Nota:</b> ${acertos}/${total} (${pct}%) • <b>Tempo:</b> ${formatTime(tempoMs)}
-    </p>
+    <div class="stage">
+      <div class="question-box">
+        <div class="q-head">
+          <div class="pill">PROVA FINAL</div>
+          <div class="pill">RESULTADO</div>
+        </div>
+        <h2 class="q-title">Nota: ${acertos}/${total} (${pct}%). Tempo: ${formatTime(tempoMs)}</h2>
+      </div>
 
-    <div class="actions">
-      <button class="btn" type="button" onclick="iniciarProvaFinal()">Refazer PROVA FINAL (novo sorteio)</button>
-      <button class="btn secondary" type="button" onclick="mostrarHistorico()">Ver histórico</button>
+      <div class="controls">
+        <div class="left">
+          <span class="pill">Revisão detalhada abaixo</span>
+        </div>
+        <div class="right">
+          <button class="btn" type="button" onclick="iniciarProvaFinal()">Refazer (novo sorteio)</button>
+          <button class="btn secondary" type="button" onclick="mostrarHistorico()">Ver histórico</button>
+        </div>
+      </div>
+
+      <div class="question-box" style="margin-top:12px;">
+        <div class="q-head">
+          <div class="pill">REVISÃO</div>
+          <div class="pill">Questão a questão</div>
+        </div>
+        ${linhas.join("")}
+      </div>
     </div>
-
-    <div class="hr"></div>
-    <h2 class="q-title">Revisão questão a questão</h2>
-    ${linhas.join("")}
   `;
 }
 
-// Histórico
+// ===== Histórico =====
 function salvarHistorico(item){
   const key = "hist_oculo";
   const atual = JSON.parse(localStorage.getItem(key) || "[]");
@@ -356,6 +435,8 @@ function mostrarHistorico(){
   const key = "hist_oculo";
   const itens = JSON.parse(localStorage.getItem(key) || "[]");
   const box = $("historico");
+  if(!box) return;
+
   box.classList.remove("hidden");
 
   if(itens.length === 0){
@@ -380,10 +461,14 @@ function resetarHistorico(){
   mostrarHistorico();
 }
 
+// ===== Boot =====
 window.addEventListener("load", () => {
   initTema();
   atualizarResumoConfig();
 });
+
+// ======= A PARTIR DAQUI, MANTENHA SUAS QUESTÕES COMO ESTÃO =======
+
 
 // ======= A PARTIR DAQUI, MANTENHA SUAS QUESTÕES COMO ESTÃO =======
 
